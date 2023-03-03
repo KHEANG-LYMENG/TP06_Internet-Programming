@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Document</title>
+    <style>
+        *{
+            margin: 0;
+        }
+        #scroller{
+            overflow-y: auto;
+            display: flex;
+            margin: auto;
+            background-color: gainsboro;
+            width: 500px;
+            height: 600px;
+            border: 2px solid black;
+        }
+        #pageNum{
+            background-color: white;
+            width: 20%;    
+            height:auto;
+        }
+        .space{
+            background-color: aliceblue;
+            padding-left: 10px;
+        }
+        #content{
+            background-color: aquamarine;
+        }
+    </style>
+</head>
+<body>
+    <div id="scroller">
+        <div id="pageNum">a</div>
+        <div class="space"></div>
+        <div id="content">
+           <div id="a"></div>
+           <div id="b"></div>
+        </div>
+    </div>
+    <script>
+        // function GetNewActivity(){
+        //     fetch(`https://api.instantwebtools.net/v1/passenger?page=${page}&size=${limit}`).then(async (res) => {
+        //         let data = await res.json();
+        //     })
+        // }
+    let scrollerEle = document.getElementById("scroller");
+    let nameELe = document.getElementById("a");
+    let des = document.getElementById("b");
+    
+    function fetchAPI(pageNum) {
+        const limit = 20;
+        return new Promise((resolve, reject) => {
+          
+          fetch(`https://api.instantwebtools.net/v1/passenger?page=${pageNum}&size=${limit}`).then(async (res) => {
+              let dataL = await res.json();
+            
+            setTimeout(() => {
+            resolve(dataL[pageNum]);
+            nameELe.innerHTML = dataL.name;
+            des.innerHTML = dataL.description;
+            }, 2000);
+        });
+        }
+    )}
+ 
+    let currPageNum = 0;
+    let dataLoading = false;
+ 
+    const onLoadData = (page) => {
+      dataLoading = true;
+      console.log("Page " +  page);
+      fetchAPI(page).then((res) => {
+        console.log("Data " +res);
+        
+        // Render your array to HTML
+ 
+        currPageNum++;
+        dataLoading = false;
+      })
+    }
+ 
+    scrollerEle.addEventListener("scroll", (event) => {
+      const { scrollTop, clientHeight, scrollHeight } = scrollerEle;
+      if ((clientHeight + scrollTop) >= scrollHeight * 0.95) {
+        if (!dataLoading) {
+          onLoadData(currPageNum);
+        }
+      }
+    });
+ 
+    onLoadData(currPageNum);
+    </script>
+</body>
+</html>
