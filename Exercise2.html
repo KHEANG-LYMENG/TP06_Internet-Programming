@@ -52,7 +52,7 @@
             margin: 5px auto;
             border-radius: 50%;
             border: 3px solid transparent;
-            border-top-color: black;
+            border-top-color: green;
             animation: load 0.5s ease infinite;
         }
         @keyframes load {
@@ -83,36 +83,46 @@
         let display = document.getElementById('display');
         let load = document.getElementById('loading');
         let loading = false;
+        let outPut='';
         load.hidden = true;
         function fetchAPI(pageNumber) {
-            fetch(`https://api.instantwebtools.net/v1/passenger?page=${pageNumber}&size=10`)
-                .then(async (res)=>{
-                    load.hidden = true;
-                    pageChange.innerText = pageNumber;
-                    let getData = await res.json();
-                    for(let x=0; x<getData["data"].length; x++) {
-                        display.innerHTML += `
-                            <div class="data">
-                                <span><img src="https://cdn-icons-png.flaticon.com/512/2982/2982770.png"
-                                     alt="">:
-                                    ${getData["data"][x].airline[0].name} - ${getData["data"][x].airline[0].country}
-                                </span>
-                                <br>
-                                <span>🙂: ${getData["data"][x].name}</span>
-                            </div>
-                        `;
-                    }
-                });
-        }
+            fetch(`https://api.instantwebtools.net/v1/passenger?page=${pageNumber}&size=${10}`).then(async(arrData) => {
+                        let results = await arrData.json();
+                        let airline = '';
+                        let data = [{}];
+
+                        // console.log(results);
+                        for (let result = 0; result < 10; result++) {
+                            airline = results.data[result].airline;
+                            // console.log(airline);
+                            const dataAdd = {
+                                name: `${results.data[result].name}`,
+                                airline: [{
+                                    name: `${airline[0].name}`,
+                                    country: `${airline[0].country}`
+                                }]
+                            };
+                            data[result] = dataAdd;
+                            outPut += `<div class="items">` +
+                                `<div>✈️: ${airline[0].name} - ${airline[0].country}</div>` +
+                                `<div>😁: ${results.data[result].name}</div>` +
+                                `</div>`
+                        }
+                        console.log(data)
+                            // console.log('name', data[0].name, 'name', data[0].airline[0].name, 'country', data[0].airline[0].country);
+                        localStorage.setItem(`page${pageNumber}`, JSON.stringify(data));
+                        setTimeout(async() => { //loading spinner
+                            await loading(false);
+                        }, 2000);
+        })
+    }
         function fetching() {
             loading = true;
             setTimeout(()=>{
                 load.hidden = false;
-                setTimeout(()=>{
-                    pageNumber++; 
-                    loading = false; 
-                    fetchAPI(pageNumber);
-                }, 1000)
+                pageNumber++; 
+                loading = false; 
+                fetchAPI(pageNumber);
             }, 1000); 
         }
         fetchAPI(pageNumber);
