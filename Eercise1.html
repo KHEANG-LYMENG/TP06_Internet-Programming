@@ -4,95 +4,123 @@
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Document</title>
+    <title>Exercise 1</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
     <style>
         *{
             margin: 0;
         }
-        #scroller{
-            overflow-y: auto;
+        body{
+            background-color: bisque;
+        }
+        .padding-top{
+            padding-top: 100px;
+        }
+        .content{
             display: flex;
+            width: 600px;
+            height: 500px;
             margin: auto;
-            background-color: gainsboro;
-            width: 500px;
-            height: 600px;
-            border: 2px solid black;
-        }
-        #pageNum{
             background-color: white;
-            width: 20%;    
-            height:auto;
         }
-        .space{
-            background-color: aliceblue;
-            padding-left: 10px;
+        #scroll{
+            width: 500px;
+            height: 100%;
+            background-color: rgb(189, 195, 195);
+            overflow-y: auto;
         }
-        #content{
-            background-color: aquamarine;
+        #num{
+            width: 50px;
+            text-align: end;
+            font-size: 2rem;
+        }
+        .data{
+            width: 470px;
+            height: 100px;
+            margin: 5px auto 0px;
+            padding: 5px 0px 0px 5px;
+            background-color: white;
+        }
+        img{
+            padding-left: 4px;
+            width: 18px;
+            height: 13px;
+        }
+        #loadingImg{
+            width: 30px;
+            height: 30px;
+            margin: 5px auto;
+            border-radius: 50%;
+            border: 3px solid transparent;
+            border-top-color: green;
+            animation: load 0.5s ease infinite;
+        }
+        @keyframes load {
+            0% {
+                transform: rotate(0turn);
+            }
+            100% {
+                transform: rotate(1turn);
+            }
         }
     </style>
 </head>
 <body>
-    <div id="scroller">
-        <div id="pageNum">a</div>
-        <div class="space"></div>
-        <div id="content">
-           <div id="a"></div>
-           <div id="b"></div>
+    <div class="padding-top"></div>
+    <div class="content">
+        <div id="num"></div>
+        <div id="scroll">
+            <div id="display"></div>
+            <div id="loading">
+                <div id="loadingImg"></div>
+            </div>
         </div>
     </div>
     <script>
-        // function GetNewActivity(){
-        //     fetch(`https://api.instantwebtools.net/v1/passenger?page=${page}&size=${limit}`).then(async (res) => {
-        //         let data = await res.json();
-        //     })
-        // }
-    let scrollerEle = document.getElementById("scroller");
-    let nameELe = document.getElementById("a");
-    let des = document.getElementById("b");
-    
-    function fetchAPI(pageNum) {
-        const limit = 20;
-        return new Promise((resolve, reject) => {
-          
-          fetch(`https://api.instantwebtools.net/v1/passenger?page=${pageNum}&size=${limit}`).then(async (res) => {
-              let dataL = await res.json();
-            
-            setTimeout(() => {
-            resolve(dataL[pageNum]);
-            nameELe.innerHTML = dataL.name;
-            des.innerHTML = dataL.description;
-            }, 2000);
-        });
+        let pageNumber = 0;
+        let pageChange = document.getElementById('num');
+        let scrollEle = document.getElementById('scroll');
+        let display = document.getElementById('display');
+        let load = document.getElementById('loading');
+        let loading = false;
+        load.hidden = true;
+        function fetchAPI(pageNumber) {
+            fetch(`https://api.instantwebtools.net/v1/passenger?page=${pageNumber}&size=10`)
+                .then(async (res)=>{
+                    load.hidden = true;
+                    pageChange.innerText = pageNumber;
+                    let getData = await res.json();
+                    for(let x=0; x<getData["data"].length; x++) {
+                        display.innerHTML += `
+                            <div class="data">
+                                <span><img src="https://cdn-icons-png.flaticon.com/512/2982/2982770.png"
+                                     alt="">:
+                                    ${getData["data"][x].airline[0].name} - ${getData["data"][x].airline[0].country}
+                                </span>
+                                <br>
+                                <span>🙂: ${getData["data"][x].name}</span>
+                            </div>
+                        `;
+                    }
+                });
         }
-    )}
- 
-    let currPageNum = 0;
-    let dataLoading = false;
- 
-    const onLoadData = (page) => {
-      dataLoading = true;
-      console.log("Page " +  page);
-      fetchAPI(page).then((res) => {
-        console.log("Data " +res);
-        
-        // Render your array to HTML
- 
-        currPageNum++;
-        dataLoading = false;
-      })
-    }
- 
-    scrollerEle.addEventListener("scroll", (event) => {
-      const { scrollTop, clientHeight, scrollHeight } = scrollerEle;
-      if ((clientHeight + scrollTop) >= scrollHeight * 0.95) {
-        if (!dataLoading) {
-          onLoadData(currPageNum);
+        function fetching() {
+            loading = true;
+            setTimeout(()=>{
+                load.hidden = false;
+                pageNumber++; 
+                loading = false; 
+                fetchAPI(pageNumber);
+            }, 1000); 
         }
-      }
-    });
- 
-    onLoadData(currPageNum);
+        fetchAPI(pageNumber);
+        scrollEle.addEventListener('scroll', (event)=>{
+            if(scrollEle.clientHeight + scrollEle.scrollTop >= (scrollEle.scrollHeight)) {
+                if(!loading) {
+                    fetching();
+                }
+            }
+        });       
     </script>
 </body>
 </html>
