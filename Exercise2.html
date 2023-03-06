@@ -1,100 +1,136 @@
 <!DOCTYPE html>
 <html lang="en">
+
 <head>
     <meta charset="UTF-8">
     <meta http-equiv="X-UA-Compatible" content="IE=edge">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Exercise 1</title>
-    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.3.0/css/all.min.css">
+    <title>Exercise 2</title>
+    <link href="https://kit-pro.fontawesome.com/releases/v5.15.4/css/pro.min.css" rel="stylesheet">
     <style>
-        *{
+        @import url('https://fonts.googleapis.com/css2?family=Lobster&family=Roboto+Condensed:wght@300&family=Roboto:wght@100&display=swap');
+        body {
             margin: 0;
-        }
-        body{
+            padding: 0;
             background-color: bisque;
         }
-        .padding-top{
-            padding-top: 100px;
+        .content {
+            height: 100vh;
+            display: flex;
+            justify-content: center;
+            margin: auto;
+            flex-direction: column;
         }
-        .content{
+        .content>h3 {
+            width: 300px;
+            text-align: center;
+            padding: 10px;
+            box-shadow: rgba(174, 173, 177, 0.8) 0px 0px 0px 3px;
+            border-radius: 5px;
+            background-color: aliceblue;
+            background-color: rgba(217, 210, 233, .8);
+            font-size: large;
+        }
+        .container {
             display: flex;
             width: 600px;
             height: 500px;
             margin: auto;
             background-color: white;
         }
-        #scroll{
+        #scroll {
+            overflow-y: auto;
             width: 500px;
             height: 100%;
             background-color: rgb(189, 195, 195);
-            overflow-y: auto;
         }
-        #num{
+        .num {
             width: 50px;
             text-align: end;
             font-size: 2rem;
         }
-        .data{
+        .data {
             width: 470px;
             height: 100px;
             margin: 5px auto 0px;
             padding: 5px 0px 0px 5px;
             background-color: white;
         }
-        img{
-            padding-left: 4px;
-            width: 18px;
-            height: 13px;
+        @import url(https://fonts.googleapis.com/css?family=Roboto:100);
+        h1 {
+            font: 2em 'Roboto', sans-serif;
+            margin-bottom: 40px;
         }
-        #loadingImg{
-            width: 30px;
-            height: 30px;
-            margin: 5px auto;
+        .loading {
+            display: flex;
+            justify-content: center;
+        }
+        .loader {
+            display: inline-block;
+            margin-top: 10px;
+            width: 50px;
+            height: 50px;
+            border: 3px solid rgba(255, 255, 255, .3);
             border-radius: 50%;
-            border: 3px solid transparent;
-            border-top-color: green;
-            animation: load 0.5s ease infinite;
+            border-top-color: rgb(131, 125, 125);
+            animation: spin 1s ease-in-out infinite;
+            -webkit-animation: spin 1s ease-in-out infinite;
         }
-        @keyframes load {
-            0% {
-                transform: rotate(0turn);
+        @keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
             }
-            100% {
-                transform: rotate(1turn);
+        }
+        @-webkit-keyframes spin {
+            to {
+                -webkit-transform: rotate(360deg);
             }
         }
     </style>
 </head>
 <body>
-    <div class="padding-top"></div>
+    <div class="loading">
+        <div class="loader"></div>
+    </div>
     <div class="content">
-        <div id="num"></div>
-        <div id="scroll">
-            <div id="display"></div>
-            <div id="loading">
-                <div id="loadingImg"></div>
+        <div class="container">
+            <div class="num">0</div>
+            <div id="scroll">
             </div>
         </div>
     </div>
     <script>
-        let pageNumber = 0;
-        let pageChange = document.getElementById('num');
-        let scrollEle = document.getElementById('scroll');
-        let display = document.getElementById('display');
-        let load = document.getElementById('loading');
-        let loading = false;
-        let outPut='';
-        load.hidden = true;
-        function fetchAPI(pageNumber) {
-            fetch(`https://api.instantwebtools.net/v1/passenger?page=${pageNumber}&size=${10}`).then(async(arrData) => {
+        let test = true;
+        let cur_page = 0;
+        let num_page = 0;
+        let outPut = '';
+        const loader = document.getElementsByClassName('loading');
+        const content = document.getElementsByClassName('content');
+        const scroller = document.getElementById('scroll');
+        let loadData = () => { 
+            try {
+                if (localStorage.getItem('page0') && cur_page == 0) {
+                    let data1 = [{}];
+
+                    for (i = 0; i < localStorage.length; i++) {
+                        data1[i] = JSON.parse(localStorage.getItem(`page${i}`));
+                        for (j in data1[i]) {
+                            outPut += `<div class="data">` +
+                                `<div>✈️: ${data1[i][j].airline[0].name} - ${data1[i][j].airline[0].country}</div>` +
+                                `<div>🙂: ${data1[i][j].name}</div>` +
+                                `</div>`
+                        }
+                    }
+                    scroller.innerHTML = outPut;
+                    loading(false);
+                    cur_page = i;
+                } else if (cur_page >= 0) {
+                    fetch(`https://api.instantwebtools.net/v1/passenger?page=${cur_page}&size=${10}`).then(async(arrData) => {
                         let results = await arrData.json();
                         let airline = '';
                         let data = [{}];
-
-                        // console.log(results);
                         for (let result = 0; result < 10; result++) {
                             airline = results.data[result].airline;
-                            // console.log(airline);
                             const dataAdd = {
                                 name: `${results.data[result].name}`,
                                 airline: [{
@@ -103,36 +139,60 @@
                                 }]
                             };
                             data[result] = dataAdd;
-                            outPut += `<div class="items">` +
+                            outPut += `<div class="data">` +
                                 `<div>✈️: ${airline[0].name} - ${airline[0].country}</div>` +
-                                `<div>😁: ${results.data[result].name}</div>` +
+                                `<div>🙂: ${results.data[result].name}</div>` +
                                 `</div>`
                         }
                         console.log(data)
-                            // console.log('name', data[0].name, 'name', data[0].airline[0].name, 'country', data[0].airline[0].country);
-                        localStorage.setItem(`page${pageNumber}`, JSON.stringify(data));
-                        setTimeout(async() => { //loading spinner
+                        localStorage.setItem(`page${cur_page}`, JSON.stringify(data));
+                        setTimeout(async() => { 
                             await loading(false);
                         }, 2000);
-        })
-    }
-        function fetching() {
-            loading = true;
-            setTimeout(()=>{
-                load.hidden = false;
-                pageNumber++; 
-                loading = false; 
-                fetchAPI(pageNumber);
-            }, 1000); 
-        }
-        fetchAPI(pageNumber);
-        scrollEle.addEventListener('scroll', (event)=>{
-            if(scrollEle.clientHeight + scrollEle.scrollTop >= (scrollEle.scrollHeight)) {
-                if(!loading) {
-                    fetching();
+                        scroller.innerHTML = outPut;
+                        cur_page++;
+                        test = true;
+                    });
                 }
+            } catch (error) {
+                console.log(error);
+                cur_page--;
             }
-        });       
+        };
+        let loading = (load) => { 
+            if (load == true) {
+                loader[0].style.display = 'flex';
+                content[0].style.display = 'none';
+            } else {
+                loader[0].style.display = 'none';
+                content[0].style.display = 'flex';
+            }
+        }
+        let pageNumber = (num) => { 
+            document.getElementsByClassName('num')[0].innerHTML = num;
+        }
+        loading(true);
+        loadData();
+        scroller.addEventListener('scroll', () => {
+            const clientHeight = scroller.clientHeight;
+            const scollHeight = scroller.scrollHeight;
+            const scrollTop = scroller.scrollTop;
+            if (clientHeight + scrollTop + 200 >= scollHeight && test == true && cur_page <= 2862) {
+                console.log('loading')
+                localStorage.length = '';
+                loadData();
+                test = false;
+            }
+            if (clientHeight + scrollTop > (1030 * (num_page + 1)) + 600) {
+                num_page++;
+                pageNumber(num_page);
+                console.log(num_page)
+            } else if (clientHeight + scrollTop <= (1030 * (num_page) + 500)) {
+                num_page--;
+                pageNumber(num_page);
+                console.log(num_page)
+            }
+        })
     </script>
 </body>
 </html>
